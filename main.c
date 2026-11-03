@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: besoares <besoares@student.42porto.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/11/03 14:31:09 by besoares          #+#    #+#             */
+/*   Updated: 2026/11/03 14:31:11 by besoares         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
 
 // t_config -> stack (i know the size)
@@ -26,7 +38,7 @@ int	main(int argc, char **argv)
         printf("scheduler = %d\n", config.scheduler);
 
 // 2. init simulation -- create t_simulation from t_config
-	if (init_simulation(config, simulation) == 0)
+	if (init_simulation(&config, &simulation) == 0)
 		return 0;
 // 3. initialize resources --
 	// coders/dongles /scheduler, queue / synchronization objs

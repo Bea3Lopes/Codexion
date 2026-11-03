@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parse.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: besoares <besoares@student.42porto.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/11/03 14:31:01 by besoares          #+#    #+#             */
+/*   Updated: 2026/11/03 14:31:03 by besoares         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
 #include <string.h>
 
@@ -49,7 +61,7 @@ int	parser(int argc, char **argv, t_config *config)
 
 	if (argc != 9)
 	{
-		printf("ERROR: to many args");
+		printf("ERROR: number of args should be 8");
 		return 0;
 	}
 	j = 1;

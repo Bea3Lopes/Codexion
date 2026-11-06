@@ -22,6 +22,9 @@ int init_simulation(t_config *config, t_simulation *simulation)
 	if(!simulation->coders)
 		return 0;
 	simulation->scheduler = config->scheduler;
+	simulation->heap = create_heap(config->number_coders);
+	if (!heap)
+		return 0;
 	simulation->start_time = 0;
 	simulation->stop_flag = 0;
 	simulation->completed_coders = 0;
@@ -64,17 +67,18 @@ t_coder	*init_coders(t_config *config, t_dongle *dongles_list)
 		return NULL;
 
 	i = 0;
-	while (++i <= nbr_coders)
+	while (i <= nbr_coders)
 	{
-		coders_list[i - 1].id = i;
-		coders_list[i - 1].compile_count = 0;
-		coders_list[i - 1].last_compile_start = 0;
-		coders_list[i - 1].deadline = 0;
-		coders_list[i - 1].left_dongle = dongles_list[i - 1];
-		if (i == 1)
-			coders_list[i - 1].right_dongle = dongles_list[nbr_coders - 1];
+		coders_list[i].id = i + 1;
+		coders_list[i].compile_count = 0;
+		coders_list[i].last_compile_start = 0;
+		coders_list[i].deadline = 0;
+		coders_list[i].left_dongle = dongles_list[i];
+		if (i == 0)
+			coders_list[i].right_dongle = dongles_list[nbr_coders];
 		else
-			coders_list[i - 1].right_dongle = dongles_list[i - 2];
+			coders_list[i].right_dongle = dongles_list[i - 1];
+		i++;
 	}
 
 	return coders_list;

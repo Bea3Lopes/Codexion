@@ -24,7 +24,7 @@
 typedef struct s_dongle
 {
 	int	id;
-	int	available;
+	int	available; // 0 -> not available, 1-> available
 	long	cooldown_until;
 
 }	t_dongle;
@@ -56,14 +56,14 @@ typedef struct s_coder
 	int	compile_count;
 	long	last_compile_start;
 	long	deadline;
-	t_dongle	left_dongle;
-	t_dongle	right_dongle;
+	t_dongle	*left_dongle;
+	t_dongle	*right_dongle;
 
 }	t_coder;
 
 typedef struct s_heap
 {
-	int	*array;
+	t_coder	**coders_queue;
 	int	size;
 	int	capacity;
 }	t_heap;
@@ -74,6 +74,7 @@ typedef struct s_simulation
 	t_dongle	*dongles;
 	t_coder	*coders;
 	t_scheduler_type	scheduler;
+	t_heap	*heap;
 	long	start_time;
 	int	stop_flag;
 	int	completed_coders;

@@ -12,6 +12,9 @@
 
 #include "codexion.h"
 
+//fifo - arrival time (menor) (deadline)
+//edf - last_compile_start + time_to_burnout (deadline)
+
 t_heap	*create_heap(int capacity)
 {
 	t_heap	*heap;
@@ -22,7 +25,7 @@ t_heap	*create_heap(int capacity)
 
 	heap->size = 0;
 	heap->capacity = capacity;
-	heap->array = malloc(sizeof(int) * capacity);
+	heap->coders_queue = malloc(sizeof(t_coder) * capacity);
 
 	return heap;
 }
@@ -36,26 +39,31 @@ void	swap(int *a. int *b)
 	*b = temp;
 }
 
-void insert_heap(t_heap *heap, int value)
+void insert_heap(t_simulation *sim, t_heap *heap, t_coder *coder)
 {
 	int i;
 
-	if (heap-> size >= heap->capacity)
+	if (heap->size >= heap->capacity)
 	{
 		printf("Heap overflow\n");
 		return;
 	}
 	heap->size++;
 	i = heap->size - 1;
-	heap->array[i] = value;
-	while (i != 0 && heap->array[(i - 1) / 2] < heap->array[i])
+	heap->coders_queue[i] = *coder;
+	if (sim->scheduler == "EDF")
+		coder->deadline = coder->last_compile_start + sim->config->time_to_burnout;
+	else
+		coder->deadline = arrival_time;
+
+	while (i != 0 && heap->coders_queue[(i - 1) / 2]->deadline < heap->coders_queue[i]->deadline)
 	{
-		swap(&heap->array[i], &heap->array[(i - 1) / 2]);
+		swap(&heap->coders_queue[i], &heap->coders_queue[(i - 1) / 2]);
 		i = (i - 1) / 2;
 	}
 }
 
-void heapify(t_heap *heap, int i)
+void heapify_up(t_heap *heap, long i)
 {
 	int largest;
 	int left;
@@ -65,15 +73,15 @@ void heapify(t_heap *heap, int i)
 	left = 2 * i + 1;
 	right = 2 * i + 2;
 
-	if (left < heap->size && heap->array[left] > heap->array[largest])
+	if (left < heap->size && heap->array[left]->deadline > heap->array[largest]->deadline)
 		largest = left;
-	if (right < heap->size && heap->array[right] > heap->array[largest])
+	if (right < heap->size && heap->array[right]->deadline > heap->array[largest]->deadline)
 		largest = right;
 
 	if (largest != i)
 	{
 		swap(&heap->array[i], &heap->array[largest]);
-		heapify(heap, largest);
+		heapify_up(heap, largest);
 	}
 }
 
@@ -89,7 +97,7 @@ int extract_max(t_heap *heap)
 	root = heap->array[0];
 	heap->array[0] = heap->array[heap->size - 1];
 	heap->size--;
-	heapify(heap, 0);
+	heapify_up(heap, 0);
 
 	return root;
 }

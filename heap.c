@@ -25,14 +25,26 @@ t_heap	*create_heap(int capacity)
 
 	heap->size = 0;
 	heap->capacity = capacity;
-	heap->coders_queue = malloc(sizeof(t_coder) * capacity);
+	heap->coders_queue = malloc(sizeof(t_coder *) * capacity);
+	if (!heap->coders_queue)
+		//maybe dar free a heap tbm
+		return NULL;
 
 	return heap;
 }
 
-void	swap(int *a. int *b)
+int	has_priority(t_coder *a, t_coder *b)
 {
-	int temp;
+	if (a->deadline < b->deadline)
+		return 1;
+	if (a->deadline == b->deadline && a->time_request < b->time_request)
+		return 1;
+	return 0;
+}
+
+void	swap(t_coder *a, t_coder *b)
+{
+	t_coder* temp;
 
 	temp = *a;
 	*a = *b;
@@ -42,6 +54,7 @@ void	swap(int *a. int *b)
 void insert_heap(t_simulation *sim, t_heap *heap, t_coder *coder)
 {
 	int i;
+	long	time;
 
 	if (heap->size >= heap->capacity)
 	{
@@ -50,54 +63,62 @@ void insert_heap(t_simulation *sim, t_heap *heap, t_coder *coder)
 	}
 	heap->size++;
 	i = heap->size - 1;
-	heap->coders_queue[i] = *coder;
-	if (sim->scheduler == "EDF")
+	heap->coders_queue[i] = coder;
+	time = get_time_ms();
+	if (sim->scheduler == EDF)
 		coder->deadline = coder->last_compile_start + sim->config->time_to_burnout;
 	else
-		coder->deadline = arrival_time;
+		coder->deadline = time;
+	
+	coder->time_request = time;
 
-	while (i != 0 && heap->coders_queue[(i - 1) / 2]->deadline < heap->coders_queue[i]->deadline)
+	while (i != 0 && has_priority(heap->coders_queue[1], 
+							   heap->coders_queue[(i - 1) / 2])
 	{
 		swap(&heap->coders_queue[i], &heap->coders_queue[(i - 1) / 2]);
 		i = (i - 1) / 2;
 	}
 }
 
-void heapify_up(t_heap *heap, long i)
+void heapify(t_heap *heap, int i)
 {
-	int largest;
+	int smallest;
 	int left;
 	int right;
 
-	largest = i;
+	smallest = i;
 	left = 2 * i + 1;
 	right = 2 * i + 2;
 
-	if (left < heap->size && heap->array[left]->deadline > heap->array[largest]->deadline)
-		largest = left;
-	if (right < heap->size && heap->array[right]->deadline > heap->array[largest]->deadline)
-		largest = right;
+	if (left < heap->size && has_priority(heap->coders_queue[left], 
+									   heap->coders_queue[smallest]))
+		smallest = left;
+	if (right < heap->size && has_priority(heap->coders_queue[right], 
+										heap->coders_queue[smallest]))
+		smallest = right;
 
-	if (largest != i)
+	if (smallest != i)
 	{
-		swap(&heap->array[i], &heap->array[largest]);
-		heapify_up(heap, largest);
+		swap(&heap->coders_queue[i], &heap->coders_queue[smallest]);
+		heapify(heap, smallest);
 	}
 }
 
-int extract_max(t_heap *heap)
+t_coder	*extract_root(t_heap *heap)
 {
-	int root;
+	t_coder	*root;
 
 	if (heap->size <= 0)
-		return 0;
+		return NULL;
 	if (heap->size == 1)
-		return heap->array[0];
-	
-	root = heap->array[0];
-	heap->array[0] = heap->array[heap->size - 1];
+	{
+		heap->size--;
+		return heap->coders_queue[0];
+	}
+	root = heap->coders_queue[0];
+	heap->coders_queue[0] = heap->coders_queue[heap->size - 1];
 	heap->size--;
-	heapify_up(heap, 0);
+	heapify(heap, 0);
 
 	return root;
 }

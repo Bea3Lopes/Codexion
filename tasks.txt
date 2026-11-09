@@ -1,0 +1,8 @@
+para 9/11:
+-threads feitos e alguns errors handlings
+-scheduler: requests, dongle check, dongle release, etc
+-do coder_routine
+
+
+-fazer stop_simulation(esta no simulation.c)
+-

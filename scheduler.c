@@ -23,10 +23,10 @@ int	grant_request(t_simulation *simulation, t_coder	*coder)
 	if (coder.right_dongle->available ==  0)
 		return 0;
 
-	if (coder.left_dongle->cooldown_until > 0)
+	if (coder.left_dongle->cooldown_until > get_time_ms())
 		return 0;
 
-	if (coder.left_dongle->cooldown_until > 0)
+	if (coder.left_dongle->cooldown_until > get_time_ms())
 		return 0;
 	
 	return 1;
@@ -35,8 +35,7 @@ int	grant_request(t_simulation *simulation, t_coder	*coder)
 int	request_dongles(t_coder *coder, t_simulation *sim)
 //adds coder to queue
 {
-	insert_heap(sim->heap, coder);
-	//heapify with new coder according to fifo or edf
+	insert_heap(sim, sim->heap, coder);
 }
 
 void	dispatch_requests(t_simulation *simulation)
@@ -53,4 +52,3 @@ void	release_dongles(t_coder *coder)
 
 }
 
-int	request_has_priority

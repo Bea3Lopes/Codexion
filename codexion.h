@@ -31,8 +31,8 @@ typedef struct s_dongle
 
 typedef enum e_scheduler_type
 {
-	EDF,
-	FIFO
+	EDF, //0
+	FIFO //1
 
 }	t_scheduler_type;
 
@@ -56,6 +56,7 @@ typedef struct s_coder
 	int	compile_count;
 	long	last_compile_start;
 	long	deadline;
+	long	time_request;
 	t_dongle	*left_dongle;
 	t_dongle	*right_dongle;
 
@@ -85,17 +86,17 @@ typedef struct s_simulation
 
 
 
-int	main(int argc, char **argv);
-int	ft_isdigit(char n);
-int	initialize_config(t_config *config, char **argv);
-int	parser(int argc, char **argv, t_config *config);
+int		main(int argc, char **argv);
+int		ft_isdigit(char n);
+int		initialize_config(t_config *config, char **argv);
+int		parser(int argc, char **argv, t_config *config);
 t_dongle	*init_dongles(t_config *config);
-t_coder	*init_coders(t_config *config, t_dongle *dongles_list);
-int init_simulation(t_config *config, t_simulation *simulation);
-t_heap	*create_heap(int capacity);
-void	swap(int *a. int *b);
-void insert_heap(t_heap *heap, int value);
-void heapify(t_heap *heap, int i);
-int extract_max(t_heap *heap);
-
+t_coder		*init_coders(t_config *config, t_dongle *dongles_list);
+int		init_simulation(t_config *config, t_simulation *simulation);
+t_heap		*create_heap(int capacity);
+int		has_priority(t_coder *a, t_coder *b);
+void		swap(t_coder *a, t_coder *b);
+void		insert_heap(t_simulation *sim, t_heap *heap, t_coder *coder);
+void		heapify(t_heap *heap, int i);
+t_coder		*extract_root(t_heap *heap);
 #endif

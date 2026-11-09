@@ -45,11 +45,12 @@ t_dongle	*init_dongles(t_config *config)
 		return NULL;
 	
 	i = 0;
-	while (++i <= nbr_dongles)
+	while (i < nbr_dongles)
 	{
-		dongles_list[i - 1].id = i;
-		dongles_list[i - 1].available = 1;
-		dongles_list[i - 1].cooldown_until = 0;
+		dongles_list[i].id = i + 1;
+		dongles_list[i].available = 1;
+		dongles_list[i].cooldown_until = 0;
+		i++;
 	}
 
 	return dongles_list;
@@ -67,15 +68,16 @@ t_coder	*init_coders(t_config *config, t_dongle *dongles_list)
 		return NULL;
 
 	i = 0;
-	while (i <= nbr_coders)
+	while (i < nbr_coders)
 	{
 		coders_list[i].id = i + 1;
 		coders_list[i].compile_count = 0;
 		coders_list[i].last_compile_start = 0;
 		coders_list[i].deadline = 0;
+		coders_list[i].time_request = 0;
 		coders_list[i].left_dongle = dongles_list[i];
 		if (i == 0)
-			coders_list[i].right_dongle = dongles_list[nbr_coders];
+			coders_list[i].right_dongle = dongles_list[nbr_coders - 1];
 		else
 			coders_list[i].right_dongle = dongles_list[i - 1];
 		i++;

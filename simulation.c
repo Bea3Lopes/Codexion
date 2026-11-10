@@ -16,16 +16,18 @@ int	thread_coders(t_simulation *sim, int number_coders)
 {
 	int	i;
 	int	thread_flag;
+	t_coder	*coder;
 
+	coder= sim->coders;
 	i = 0;
 
 	while (i < number_coders)
 	{
-		sim->coders[i]->last_compile_start = sim->start_time;
+		coder[i]->last_compile_start = sim->start_time;
 		if (number_coders == 1)
-			thread_flag = pthread_create(&sim->coders[i]->thread, NULL, single_routine, &sim->coders[i]);
+			thread_flag = pthread_create(coder[i]->thread, NULL, single_routine, coder[i]);
 		else
-			thread_flag = pthread_create(&sim->coders[i]->thread, NULL, coder_routine, &sim->coders[i]);
+			thread_flag = pthread_create(coder[i]->thread, NULL, coder_routine, coder[i]);
 		if (thread_flag != 0)
 			return i;
 		i++;
@@ -54,20 +56,48 @@ int	start_simulation(t_simulation *sim)
 		pthread_join(sim->monitor_thread, NULL);
 	return flag;
 }
-
-void	*coder_routine(void *arg)
+void	*single_routine(void *arg)
 {
 	t_coder	*coder;
 
 	coder = (t_coder *)arg;
+	
+
+}
+
+void	*coder_routine(void *arg)
+{
+	t_coder	*coder;
+	int	res;
+	t_simulation	*sim;
+
+	coder = (t_coder *)arg;
+	sim = coder->sim;
 	//start
-	////request_dongles
-	///wai for grant
+	while(!sim->stop_flag)
+	{
+	////register request, needs to have a mutex (figure later, maybe i will need request_dongles)
+		insert_heap(sim, sim->heap, coder);
+		//can do a dispatch_requests
+		pthread_mutex_lock(&sim->resource_mutex);
+		while (!coder->granted && !sim->stop_flag)
+		 //instead do the pthread_cond_wait -> puts thread to sleep, so isnt constinoustly checking flag
+			pthread_cond_wait(&sim->resource_cond, &sim->resource_mutex);
+		pthread_mutex_unlock(&sim->resource_mutex);
+		if (sim->stop_flag)
+			break;
 	///compile
+		do_compile(coder);
 	///release dongles
+		release_dongles(coder);
+	///checks the heap and decides who gets dongles
+		dispatch_requests(); //set coder->grant = 1 and signals the cond var
 	///debug
+		do_debug(coder);
 	///refactor
+		do_refactor(coder);
 	///repeat until stop condition
+	}
 }
 
 void	*monitor_routine(void *arg)

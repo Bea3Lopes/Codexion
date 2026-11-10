@@ -1,7 +1,15 @@
 para 9/11:
--threads feitos e alguns errors handlings
--scheduler: requests, dongle check, dongle release, etc
--do coder_routine
+-threads feitos e alguns errors handlings //check
+-scheduler: requests, dongle check, dongle release, etc //check
+-do coder_routine //semi-check
+
+So your architecture can be:
+- Coder threads execute coder_routine().
+- **The monitor thread checks burnout and simulation completion.**
+- Coder threads call dispatch_requests() when requests are added or dongles are released.
+- Condition variables wake coders that have been granted resources.
+
+
 
 
 -fazer stop_simulation(esta no simulation.c)

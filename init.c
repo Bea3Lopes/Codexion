@@ -14,6 +14,8 @@
 
 int init_simulation(t_config *config, t_simulation *simulation)
 {
+	int	i;
+	
 	simulation->config = config;
 	simulation->dongles = init_dongles(config);
 	if (!simulation->dongles)
@@ -28,6 +30,9 @@ int init_simulation(t_config *config, t_simulation *simulation)
 	simulation->start_time = 0;
 	simulation->stop_flag = 0;
 	simulation->completed_coders = 0;
+	i = -1;
+	while (++i < config->number_coders)
+		simulation->coders[i]->sim = sim;
 
 	return 1;
 }
@@ -47,9 +52,9 @@ t_dongle	*init_dongles(t_config *config)
 	i = 0;
 	while (i < nbr_dongles)
 	{
-		dongles_list[i].id = i + 1;
-		dongles_list[i].available = 1;
-		dongles_list[i].cooldown_until = 0;
+		dongles_list[i]->id = i + 1;
+		dongles_list[i]->available = 1;
+		dongles_list[i]->cooldown_until = 0;
 		i++;
 	}
 
@@ -70,16 +75,18 @@ t_coder	*init_coders(t_config *config, t_dongle *dongles_list)
 	i = 0;
 	while (i < nbr_coders)
 	{
-		coders_list[i].id = i + 1;
-		coders_list[i].compile_count = 0;
-		coders_list[i].last_compile_start = 0;
-		coders_list[i].deadline = 0;
-		coders_list[i].time_request = 0;
-		coders_list[i].left_dongle = dongles_list[i];
+		coders_list[i]->id = i + 1;
+		coders_list[i]->compile_count = 0;
+		coders_list[i]->last_compile_start = 0;
+		coders_list[i]->deadline = 0;
+		coders_list[i]->time_request = 0;
+		coders_list[i]->left_dongle = dongles_list[i];
+		coders_list[i]->sim = NULL;
+		coders_list[i]->grant = 0;
 		if (i == 0)
-			coders_list[i].right_dongle = dongles_list[nbr_coders - 1];
+			coders_list[i]->right_dongle = dongles_list[nbr_coders - 1];
 		else
-			coders_list[i].right_dongle = dongles_list[i - 1];
+			coders_list[i]->right_dongle = dongles_list[i - 1];
 		i++;
 	}
 

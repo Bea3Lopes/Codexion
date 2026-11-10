@@ -57,8 +57,10 @@ typedef struct s_coder
 	long	last_compile_start;
 	long	deadline;
 	long	time_request;
+	int	grant;
 	t_dongle	*left_dongle;
 	t_dongle	*right_dongle;
+	t_simulation	*sim;
 
 }	t_coder;
 

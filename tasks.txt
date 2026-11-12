@@ -1,16 +1,17 @@
 para 9/11:
 -threads feitos e alguns errors handlings //check
--scheduler: requests, dongle check, dongle release, etc //check
+-scheduler: requests, dongle check, dongle release, etc //remake***
 -do coder_routine //semi-check
 
 So your architecture can be:
 - Coder threads execute coder_routine().
-- **The monitor thread checks burnout and simulation completion.**
+- ***The monitor thread checks burnout and simulation completion.***
 - Coder threads call dispatch_requests() when requests are added or dongles are released.
 - Condition variables wake coders that have been granted resources.
 
 
-
+-mutex nao pode estar no compiling, debug, refactor (fica no scheduler)
+-Otherwise, one coder could prevent every other coder from registering requests or releasing resources for the entire duration of its activity.
 
 -fazer stop_simulation(esta no simulation.c)
 -

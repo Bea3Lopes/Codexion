@@ -16,7 +16,17 @@ long	get_time_ms(void)
 {
 	struct timeval	tv;
 
-	if (settimeofday(&tv, NULL) == -1)
+	if (gettimeofday(&tv, NULL) == -1)
 		return (-1);
 	return ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
 }
+
+void	ft_usleep(long time_in_ms)
+{
+	long	start_time;
+
+	start_time = get_time_ms();
+	while ((get_time_ms() - start_time) < time_in_ms)
+		usleep(500);
+}
+	

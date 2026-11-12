@@ -69,7 +69,7 @@ void insert_heap(t_simulation *sim, t_heap *heap, t_coder *coder)
 		coder->deadline = coder->last_compile_start + sim->config->time_to_burnout;
 	else
 		coder->deadline = time;
-	
+	coder->grant = 0;	
 	coder->time_request = time;
 
 	while (i != 0 && has_priority(heap->coders_queue[1], 

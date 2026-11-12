@@ -98,6 +98,7 @@ void	*coder_routine(void *arg)
 		do_refactor(coder);
 	///repeat until stop condition
 	}
+	return NULL;
 }
 
 void	*monitor_routine(void *arg)

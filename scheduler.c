@@ -48,8 +48,6 @@ void	dispatch_request(t_coder *coder)
 	extract_root(coder->sim->heap)
 	coder->left_dongle->available = 0;
 	coder->right_dongle->available = 0;
-	coder->last_compile_start = get_time_ms();
-	coder->compile_count++;
 	sleep(coder->sim->config->time_to_compile);
 
 

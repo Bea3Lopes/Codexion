@@ -15,3 +15,11 @@ So your architecture can be:
 
 -fazer stop_simulation(esta no simulation.c)
 -
+
+
+
+codexion
+dentista
+analises
+cv/coverletter/shakencandidatura
+

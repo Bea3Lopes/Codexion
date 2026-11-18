@@ -20,7 +20,8 @@ void	do_compile(t_coder *coder)
 	coder->last_compile_start = get_time_ms();
 	ft_usleep(time_compile);
 	coder->compile_count++;
-	coder->sim->completed_coders++;
+	if (coder->compile_count == coder->sim->config->number_of_compiles_required)
+		coder->sim->completed_coders++;
 	return;
 }
 

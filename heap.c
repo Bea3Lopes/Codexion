@@ -72,7 +72,7 @@ void insert_heap(t_simulation *sim, t_heap *heap, t_coder *coder)
 	coder->grant = 0;	
 	coder->time_request = time;
 
-	while (i != 0 && has_priority(heap->coders_queue[1], 
+	while (i != 0 && has_priority(heap->coders_queue[i], 
 							   heap->coders_queue[(i - 1) / 2])
 	{
 		swap(&heap->coders_queue[i], &heap->coders_queue[(i - 1) / 2]);
@@ -121,4 +121,35 @@ t_coder	*extract_root(t_heap *heap)
 	heapify(heap, 0);
 
 	return root;
+}
+
+void	remove_coder(t_heap *heap, int i)
+{
+	int	parent;
+
+	if (i < 0 || i >= heap->size)
+		return;
+	if (i == 0)
+	{
+		extract_root(heap);
+		return;
+	}
+
+	heap->coders_queue[i] = heap->coders_queue[heap->size - 1];
+	heap->size--;
+
+	if (i >= heap->size)
+		return;
+	
+	parent = (i - 1) / 2;
+	if (i > 0 && has_priority(heap->coders_queue[i], heap->coders_queue[parent]))
+	{
+		while (i != 0 && has_priority(heap->coders_queue[i], heap->coders_queue[(i - 1) / 2]))
+		{
+			swap(&heap->coders_queue[i], &heap->coders_queue[(i - 1) / 2]);
+			i = (i - 1) / 2;
+		}	
+	}
+	else
+		heapify(heap, i);
 }

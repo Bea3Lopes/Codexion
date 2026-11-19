@@ -22,16 +22,16 @@ void	do_compile(t_coder *coder)
 	coder->compile_count++;
 	if (coder->compile_count == coder->sim->config->number_of_compiles_required)
 		coder->sim->completed_coders++;
-	return;
+	return ;
 }
 
-void	do_debug(t_coder* coder)
+void	do_debug(t_coder *coder)
 {
 	long	time_debug;
 
 	time_debug = coder->sim->config->time_to_debug;
 	ft_usleep(time_debug);
-	return;
+	return ;
 }
 
 void	do_refactor(t_coder *coder)
@@ -40,5 +40,5 @@ void	do_refactor(t_coder *coder)
 
 	time_refactor = coder->sim->config->time_to_refactor;
 	ft_usleep(time_refactor);
-	return;
+	return ;
 }

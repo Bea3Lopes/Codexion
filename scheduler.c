@@ -15,21 +15,16 @@
 int	can_grant_request(t_simulation *simulation, t_coder	*coder)
 {
 	if (simulation->stop_flag == 1)
-		return 0;
-
-	if (coder->left_dongle->available ==  0)
-		return 0;
-
-	if (coder->right_dongle->available ==  0)
-		return 0;
-
+		return (0);
+	if (coder->left_dongle->available == 0)
+		return (0);
+	if (coder->right_dongle->available == 0)
+		return (0);
 	if (coder->left_dongle->cooldown_until > get_time_ms())
-		return 0;
-
+		return (0);
 	if (coder->right_dongle->cooldown_until > get_time_ms())
-		return 0;
-	
-	return 1;
+		return (0);
+	return (1);
 }
 
 void	grant_request(t_coder *coder)
@@ -43,12 +38,12 @@ void	dispatch_request(t_simulation *sim)
 {
 	t_coder	*coder_dispatched;
 	t_heap	*heap;
-	int	i;
+	int		i;
 
 	heap = sim->heap;
-	pthread_mutex_lock(&sim->resource_mutex);	
+	pthread_mutex_lock(&sim->resource_mutex);
 	i = 0;
-	while(i < heap->size)
+	while (i < heap->size)
 	{
 		if (can_grant_request(sim, heap->coders_queue[i]))
 		{
@@ -66,7 +61,7 @@ void	dispatch_request(t_simulation *sim)
 void	release_dongles(t_coder *coder)
 {
 	long	cooldown;
-	
+
 	pthread_mutex_lock(&sim->resource_mutex);
 	coder->left_dongle->available = 1;
 	coder->right_dongle->available = 1;
@@ -75,4 +70,3 @@ void	release_dongles(t_coder *coder)
 	coder->right_dongle->cooldown_until = cooldown;
 	pthread_mutex_unlock(&sim->resource_mutex);
 }
-

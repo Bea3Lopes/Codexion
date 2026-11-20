@@ -89,39 +89,35 @@ void	*single_routine(void *arg)
 void	*coder_routine(void *arg)
 {
 	t_coder			*coder;
-	int				res;
 	t_simulation	*sim;
 
 	coder = (t_coder *)arg;
 	sim = coder->sim;
-	//start
-	while (!sim->stop_flag && coder->compile_count != sim->config->number_compiles_required)
+	while (1)
 	{
-	////register request, needs to have a mutex (figure later, maybe i will need request_dongles)
+		if (sim->stop_flag|| coder->compile_count >= sim->config->number_compiles_required)
+    		{
+        		pthread_mutex_unlock(&sim->resource_mutex);
+        		break;
+    		}
+
+    		pthread_mutex_unlock(&sim->resource_mutex);
 		pthread_mutex_lock(&sim->resource_mutex);
 		coder->grant = 0;
 		insert_heap(sim, sim->heap, coder);
 		pthread_mutex_unlock(&sim->resource_mutex);
-		dispatch_request(sim); //set coder->grant = 1 and signals the cond var
-		//can do a dispatch_requests
+		dispatch_request(sim);
 		pthread_mutex_lock(&sim->resource_mutex);
 		while (!coder->grant && !sim->stop_flag)
-		 //instead do the pthread_cond_wait -> puts thread to sleep, so isnt constinoustly checking flag
 			pthread_cond_wait(&sim->resource_cond, &sim->resource_mutex);
-		pthread_mutex_unlock(&sim->resource_mutex);
 		if (sim->stop_flag)
 			break ;
-	///compile
+		pthread_mutex_unlock(&sim->resource_mutex);
 		do_compile(coder);
-	///release dongles
 		release_dongles(coder);
-	///checks the heap and decides who gets dongles
-		dispatch_request(sim); //set coder->grant = 1 and signals the cond var
-	///debug
+		dispatch_request(sim);
 		do_debug(coder);
-	///refactor
 		do_refactor(coder);
-	///repeat until stop condition
 	}
 	return (NULL);
 }
@@ -136,7 +132,7 @@ void	*monitor_routine(void *arg)
 	sim = (t_simulation *)arg;
 	nbr_compiles_required = sim->config->number_compiles_required;
 	time_to_burnout = sim->config->time_to_burnout;
-	while (sim->completed_coders != sim->config->number_coders)
+	while (sim->completed_coders < sim->config->number_coders)
 	{
 		if (sim->stop_flag)
 			break ;
@@ -150,6 +146,7 @@ void	*monitor_routine(void *arg)
 			}
 			i++;
 		}
+		dispatch_request(sim);
 		ft_usleep(500);
 	}
 	stop_simulation(sim);

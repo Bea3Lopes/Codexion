@@ -17,9 +17,9 @@
 # include <stdio.h>
 # include <string.h>
 # include <stdlib.h>
-# include <time.h>
+# include <sys/time.h>
 # include <pthread.h>
-
+# include <unistd.h>
 
 typedef struct s_dongle
 {
@@ -48,6 +48,8 @@ typedef struct s_config
 	t_scheduler_type	scheduler;
 
 }	t_config;
+
+typedef struct s_simulation t_simulation;
 
 typedef struct s_coder
 {
@@ -82,23 +84,36 @@ typedef struct s_simulation
 	int	stop_flag;
 	int	completed_coders;
 	pthread_t	monitor_thread; // monitor thread for main to join
-	pthread_mutex_t	stop_mutex; // for stopflag and completed_coders
+	pthread_mutex_t	resource_mutex; // for stopflag and completed_coders
 	pthread_mutex_t	write_mutex; //printing
+	pthread_cond_t	resource_cond;
 }	t_simulation;
 
 
 
-int		main(int argc, char **argv);
+//int		main(int argc, char **argv);
 int		ft_isdigit(char n);
 int		initialize_config(t_config *config, char **argv);
 int		parser(int argc, char **argv, t_config *config);
 t_dongle	*init_dongles(t_config *config);
 t_coder		*init_coders(t_config *config, t_dongle *dongles_list);
 int		init_simulation(t_config *config, t_simulation *simulation);
+//heap_functions
+void		free_heap(t_heap *heap);
 t_heap		*create_heap(int capacity);
 int		has_priority(t_coder *a, t_coder *b);
-void		swap(t_coder *a, t_coder *b);
+void		swap(t_coder **a, t_coder **b);
 void		insert_heap(t_simulation *sim, t_heap *heap, t_coder *coder);
 void		heapify(t_heap *heap, int i);
 t_coder		*extract_root(t_heap *heap);
+void	remove_coder(t_heap *heap, int i);
+//scheduler
+int	can_grant_request(t_simulation *simulation, t_coder *coder);
+void	grant_request(t_coder *coder);
+int	find_best_candidate(t_simulation *sim);
+void	dispatch_request(t_simulation *sim);
+void	release_dongles(t_coder *coder);
+//time
+long	get_time_ms(void);
+void	ft_usleep(long time_in_ms);
 #endif

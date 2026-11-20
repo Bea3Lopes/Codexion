@@ -42,7 +42,7 @@ t_heap	*create_heap(int capacity)
 	return (heap);
 }
 
-int	has_priority(t_coder **a, t_coder **b)
+int	has_priority(t_coder *a, t_coder *b)
 {
 	if (a->deadline < b->deadline)
 		return (1);
@@ -51,7 +51,7 @@ int	has_priority(t_coder **a, t_coder **b)
 	return (0);
 }
 
-void	swap(t_coder *a, t_coder *b)
+void	swap(t_coder **a, t_coder **b)
 {
 	t_coder	*temp;
 

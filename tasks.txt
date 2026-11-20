@@ -23,3 +23,8 @@ dentista
 analises
 cv/coverletter/shakencandidatura
 
+
+19/11
+-talvez adicionar mutex em simulation/coder_routine/linha 95
+e ./monitor_routine/linha 136?
+e proteger c'ompile_count e completed_coders?

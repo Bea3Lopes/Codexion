@@ -17,11 +17,15 @@ void	do_compile(t_coder *coder)
 	long	time_compile;
 
 	time_compile = coder->sim->config->time_to_compile;
+	pthread_mutex_lock(&sim->resource_mutex);
 	coder->last_compile_start = get_time_ms();
+	pthread_mutex_unlock(&sim->resource_mutex);
 	ft_usleep(time_compile);
+	pthread_mutex_lock(&sim->resource_mutex);
 	coder->compile_count++;
 	if (coder->compile_count == coder->sim->config->number_of_compiles_required)
 		coder->sim->completed_coders++;
+	pthread_mutex_unlock(&sim->resource_mutex);
 	return ;
 }
 

@@ -125,7 +125,7 @@ void	*monitor_routine(void *arg)
 
 	sim = (t_simulation *)arg;
 	time_to_burnout = sim->config->time_to_burnout;
-	while (sim->completed_coders < sim->config->number_coders)
+	while (1)
 	{
 		pthread_mutex_lock(&sim->resource_mutex);
 		if (sim->stop_flag)
@@ -133,9 +133,18 @@ void	*monitor_routine(void *arg)
 			pthread_mutex_unlock(&sim->resource_mutex);
 			break ;
 		}
+		if (sim->completed_coders >= sim->config->number_coders)
+		{
+			pthread_mutex_unlock(&sim->resource_mutex);
+			stop_simulation(sim);
+			break ;
+		}
 		i = 0;
 		while (i < sim->config->number_coders)
 		{
+			while (sim->coders[i]->compile_count
+				>= sim->config->number_compiles_required)
+				i++;
 			if (get_time_ms() - sim->coders[i]->last_compile_start >= time_to_burnout)
 			{
 				pthread_mutex_unlock(&sim->resource_mutex);
@@ -149,7 +158,6 @@ void	*monitor_routine(void *arg)
 		dispatch_request(sim);
 		ft_usleep(100);
 	}
-	stop_simulation(sim);
 	return (NULL);
 }
 

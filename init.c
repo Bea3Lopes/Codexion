@@ -25,30 +25,38 @@ int	init_simulation(t_config *config, t_simulation *simulation)
 		return (0);
 	simulation->scheduler = config->scheduler;
 	simulation->heap = create_heap(config->number_coders);
-	if (!heap)
+	if (!simulation->heap)
 		return (0);
 	simulation->start_time = 0;
 	simulation->stop_flag = 0;
 	simulation->completed_coders = 0;
 	i = -1;
 	while (++i < config->number_coders)
-		simulation->coders[i]->sim = sim;
+		simulation->coders[i]->sim = simulation;
 	return (1);
 }
 
-t_dongle	*init_dongles(t_config *config)
+t_dongle	**init_dongles(t_config *config)
 {
-	t_dongle	*dongles_list;
+	t_dongle	**dongles_list;
 	int			nbr_dongles;
 	int			i;
 
 	nbr_dongles = config->number_coders;
-	dongles_list = malloc(sizeof(t_dongle) * nbr_dongles);
+	dongles_list = malloc(sizeof(t_dongle *) * nbr_dongles);
 	if (!dongles_list)
 		return (NULL);
 	i = 0;
 	while (i < nbr_dongles)
 	{
+		dongles_list[i] = malloc(sizeof(t_dongle));
+		if (!dongles_list[i])
+		{
+			while (i > 0)
+				free(dongles_list[--i]);
+			free(dongles_list);
+			return (NULL);
+		}
 		dongles_list[i]->id = i + 1;
 		dongles_list[i]->available = 1;
 		dongles_list[i]->cooldown_until = 0;
@@ -57,19 +65,27 @@ t_dongle	*init_dongles(t_config *config)
 	return (dongles_list);
 }
 
-t_coder	*init_coders(t_config *config, t_dongle *dongles_list)
+t_coder	**init_coders(t_config *config, t_dongle **dongles_list)
 {
 	int		i;
-	t_coder	*coders_list;
+	t_coder	**coders_list;
 	int		nbr_coders;
 
 	nbr_coders = config->number_coders;
-	coders_list = malloc(sizeof(t_coder) * nbr_coders);
+	coders_list = malloc(sizeof(t_coder *) * nbr_coders);
 	if (!coders_list)
 		return (NULL);
 	i = 0;
 	while (i < nbr_coders)
 	{
+		coders_list[i] = malloc(sizeof(t_coder));
+		if (!coders_list[i])
+		{
+			while (i > 0)
+				free(coders_list[--i]);
+			free(coders_list);
+			return (NULL);
+		}
 		coders_list[i]->id = i + 1;
 		coders_list[i]->compile_count = 0;
 		coders_list[i]->last_compile_start = 0;

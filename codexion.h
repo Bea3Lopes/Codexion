@@ -76,8 +76,8 @@ typedef struct s_heap
 typedef struct s_simulation
 {
 	t_config	*config;
-	t_dongle	*dongles;
-	t_coder	*coders;
+	t_dongle	**dongles;
+	t_coder	**coders;
 	t_scheduler_type	scheduler;
 	t_heap	*heap;
 	long	start_time;
@@ -91,13 +91,28 @@ typedef struct s_simulation
 
 
 
-//int		main(int argc, char **argv);
-int		ft_isdigit(char n);
-int		initialize_config(t_config *config, char **argv);
-int		parser(int argc, char **argv, t_config *config);
-t_dongle	*init_dongles(t_config *config);
-t_coder		*init_coders(t_config *config, t_dongle *dongles_list);
-int		init_simulation(t_config *config, t_simulation *simulation);
+int		main(int argc, char **argv);
+//parse & init
+int	ft_isdigit(char n);
+int	initialize_config(t_config *config, char **argv);
+int	parser(int argc, char **argv, t_config *config);
+int	init_simulation(t_config *config, t_simulation *simulation);
+t_dongle	**init_dongles(t_config *config);
+t_coder	**init_coders(t_config *config, t_dongle **dongles_list);
+//sim
+int	thread_coders(t_simulation *sim, int number_coders);
+int	run_simulation(t_simulation *sim);
+void	*single_routine(void *arg);
+void	*coder_routine(void *arg);
+void	*monitor_routine(void *arg);
+void	stop_simulation(t_simulation *sim);
+void	sim_cleanup(t_simulation *sim);
+//actions
+void	do_compile(t_coder *coder);
+void	do_debug(t_coder *coder);
+void	do_refactor(t_coder *coder);
+void	log_state(t_coder *coder, char *message);
+void	log_state_locked(t_coder *coder, char *message);
 //heap_functions
 void		free_heap(t_heap *heap);
 t_heap		*create_heap(int capacity);

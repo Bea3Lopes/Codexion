@@ -33,7 +33,9 @@ int	can_grant_request(t_simulation *simulation, t_coder *coder)
 void	grant_request(t_coder *coder)
 {
 	coder->left_dongle->available = 0;
+	log_state_locked(coder, "has taken a dongle");
 	coder->right_dongle->available = 0;
+	log_state_locked(coder, "has taken a dongle");
 	coder->grant = 1;
 }
 
@@ -67,6 +69,7 @@ void	dispatch_request(t_simulation *sim)
 	best = find_best_candidate(sim);
 	while (best != -1)
 	{
+		best = find_best_candidate(sim);
 		coder_dispatched = sim->heap->coders_queue[best];
 		remove_coder(sim->heap, best);
 		grant_request(coder_dispatched);

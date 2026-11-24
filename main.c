@@ -21,34 +21,39 @@ int	main(int argc, char **argv)
 	t_config config;
 	t_simulation simulation;
 
-	memset(&config, 0, sizeof(t_config)); //not needed allocate on stack
-
-// 1. parse + validate args	-- fill t_config
-
 	if (parser(argc, argv, &config) == 0)
-		return 0;
+		return (1);
 
-        printf("coders   = %d\n", config.number_coders);
-        printf("burnout  = %ld\n", config.time_to_burnout);
-        printf("compile  = %ld\n", config.time_to_compile);
-        printf("debug    = %ld\n", config.time_to_debug);
-        printf("refactor = %ld\n", config.time_to_refactor);
-        printf("required = %d\n", config.number_compiles_required);
-        printf("cooldown = %ld\n", config.dongle_cooldown);
-        printf("scheduler = %d\n", config.scheduler);
-
-// 2. init simulation -- create t_simulation from t_config
 	if (init_simulation(&config, &simulation) == 0)
-		return 0;
-// 3. initialize resources --
-	// coders/dongles /scheduler, queue / synchronization objs
+		return (1);
+	if (pthread_mutex_init(&simulation.resource_mutex, NULL) != 0)
+    	{
+        	printf("Resource mutex initialization failed\n");
+        	sim_cleanup(&simulation);
+        	return (1);
+    	}
 
-//4. start simulation -- 
-	//create coder threads / create monitor thread
-	//
-// 5. wait for sim to finish -- join threads
-	//
-//6. cleanup --
-	//destroy mutexes,conditons/ free coders, dongles, other allocations
-	return 1;
+    	if (pthread_mutex_init(&simulation.write_mutex, NULL) != 0)
+    	{
+        	printf("Write mutex initialization failed\n");
+        	pthread_mutex_destroy(&simulation.resource_mutex);
+        	sim_cleanup(&simulation);
+        return (1);
+    	}
+
+    	if (pthread_cond_init(&simulation.resource_cond, NULL) != 0)
+    	{
+        	printf("Condition variable initialization failed\n");
+        	pthread_mutex_destroy(&simulation.resource_mutex);
+        	pthread_mutex_destroy(&simulation.write_mutex);
+        	sim_cleanup(&simulation);
+        	return (1);
+    	}
+
+    	if (run_simulation(&simulation) != 0)
+        	printf("Simulation encountered an error\n");
+
+    	sim_cleanup(&simulation);
+
+    	return (0);
 }

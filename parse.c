@@ -42,7 +42,7 @@ int	initialize_config(t_config *config, char **argv)
 	if (config->number_compiles_required <= 0)
 		return (0);
 	config->dongle_cooldown = atoi(argv[7]);
-	if (config->dongle_cooldown <= 0)
+	if (config->dongle_cooldown < 0)
 		return (0);
 	if (strcmp(argv[8], "edf") == 0)
 		config->scheduler = EDF;

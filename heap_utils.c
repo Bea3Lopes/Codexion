@@ -14,9 +14,9 @@
 
 int	has_priority(t_coder *a, t_coder *b)
 {
-	if (a->deadline > b->deadline)
+	if (a->deadline < b->deadline)
 		return (1);
-	if (a->deadline == b->deadline && a->time_request > b->time_request)
+	if (a->deadline == b->deadline && a->time_request < b->time_request)
 		return (1);
 	return (0);
 }

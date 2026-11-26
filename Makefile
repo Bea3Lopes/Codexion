@@ -21,7 +21,9 @@ SRCS        := main.c \
 			   init.c \
 	       	   simulation.c \
 			   heap.c \
-			   scheduler.c
+			   scheduler.c \
+			   heap_utils.c \
+			   simulation_utils.c
 
 OBJS        := $(SRCS:.c=.o)
 

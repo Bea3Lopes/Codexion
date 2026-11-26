@@ -15,7 +15,7 @@
 int	can_grant_request(t_simulation *simulation, t_coder *coder)
 {
 	long	current_time;
-	
+
 	if (simulation->stop_flag == 1)
 		return (0);
 	if (coder->left_dongle->available == 0)
@@ -52,7 +52,7 @@ int	find_best_candidate(t_simulation *sim)
 		{
 			if (best == -1
 				|| has_priority(sim->heap->coders_queue[i],
-								sim->heap->coders_queue[best]))
+					sim->heap->coders_queue[best]))
 				best = i;
 		}
 		i++;
@@ -69,7 +69,6 @@ void	dispatch_request(t_simulation *sim)
 	best = find_best_candidate(sim);
 	while (best != -1)
 	{
-		best = find_best_candidate(sim);
 		coder_dispatched = sim->heap->coders_queue[best];
 		remove_coder(sim->heap, best);
 		grant_request(coder_dispatched);
@@ -81,9 +80,9 @@ void	dispatch_request(t_simulation *sim)
 
 void	release_dongles(t_coder *coder)
 {
-	long	cooldown;
+	long			cooldown;
 	t_simulation	*sim;
-	
+
 	sim = coder->sim;
 	pthread_mutex_lock(&sim->resource_mutex);
 	coder->left_dongle->available = 1;

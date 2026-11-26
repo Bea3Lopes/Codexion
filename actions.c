@@ -15,7 +15,7 @@
 void	do_compile(t_coder *coder)
 {
 	t_simulation	*sim;
-	long	time_compile;
+	long			time_compile;
 
 	sim = coder->sim;
 	time_compile = coder->sim->config->time_to_compile;

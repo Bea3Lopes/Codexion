@@ -12,28 +12,6 @@
 
 #include "codexion.h"
 
-int	thread_coders(t_simulation *sim, int number_coders)
-{
-	int		i;
-	int		thread_flag;
-	t_coder	**coder;
-
-	coder = sim->coders;
-	i = 0;
-	while (i < number_coders)
-	{
-		coder[i]->last_compile_start = sim->start_time;
-		if (number_coders == 1)
-			thread_flag = pthread_create(&coder[i]->thread, NULL, single_routine, coder[i]);
-		else
-			thread_flag = pthread_create(&coder[i]->thread, NULL, coder_routine, coder[i]);
-		if (thread_flag != 0)
-			return (i);
-		i++;
-	}
-	return (i);
-}
-
 int	run_simulation(t_simulation *sim)
 {
 	int	i;
@@ -54,12 +32,9 @@ int	run_simulation(t_simulation *sim)
 		if (flag)
 			stop_simulation(sim);
 	}
-	i = 0;
-	while (i < nbr_thread_coders)
-	{
+	i = -1;
+	while (++i < nbr_thread_coders)
 		pthread_join(sim->coders[i]->thread, NULL);
-		i++;
-	}
 	if (!flag)
 		pthread_join(sim->monitor_thread, NULL);
 	return (flag);
@@ -69,13 +44,44 @@ void	*single_routine(void *arg)
 {
 	t_coder			*coder;
 	t_simulation	*sim;
-	
+
 	coder = (t_coder *)arg;
 	sim = coder->sim;
 	log_state(coder, "has taken a dongle");
-	while (!sim->stop_flag)
+	while (1)
+	{
+		pthread_mutex_lock(&sim->resource_mutex);
+		if (sim->stop_flag)
+		{
+			pthread_mutex_unlock(&sim->resource_mutex);
+			break ;
+		}
+		pthread_mutex_unlock(&sim->resource_mutex);
 		ft_usleep(sim->config->time_to_burnout);
+	}
 	return (NULL);
+}
+
+static int	request_dongles(t_coder *coder)
+{
+	t_simulation	*sim;
+
+	sim = coder->sim;
+	pthread_mutex_lock(&sim->resource_mutex);
+	coder->grant = 0;
+	insert_heap(sim, sim->heap, coder);
+	pthread_mutex_unlock(&sim->resource_mutex);
+	dispatch_request(sim);
+	pthread_mutex_lock(&sim->resource_mutex);
+	while (!coder->grant && !sim->stop_flag)
+		pthread_cond_wait(&sim->resource_cond, &sim->resource_mutex);
+	if (sim->stop_flag)
+	{
+		pthread_mutex_unlock(&sim->resource_mutex);
+		return (0);
+	}
+	pthread_mutex_unlock(&sim->resource_mutex);
+	return (1);
 }
 
 void	*coder_routine(void *arg)
@@ -88,26 +94,15 @@ void	*coder_routine(void *arg)
 	while (1)
 	{
 		pthread_mutex_lock(&sim->resource_mutex);
-		if (sim->stop_flag || coder->compile_count >= sim->config->number_compiles_required)
-    		{
-        		pthread_mutex_unlock(&sim->resource_mutex);
-        		break;
-    		}
-    		pthread_mutex_unlock(&sim->resource_mutex);
-		pthread_mutex_lock(&sim->resource_mutex);
-		coder->grant = 0;
-		insert_heap(sim, sim->heap, coder);
-		pthread_mutex_unlock(&sim->resource_mutex);
-		dispatch_request(sim);
-		pthread_mutex_lock(&sim->resource_mutex);
-		while (!coder->grant && !sim->stop_flag)
-			pthread_cond_wait(&sim->resource_cond, &sim->resource_mutex);
-		if (sim->stop_flag)
+		if (sim->stop_flag || coder->compile_count
+			>= sim->config->number_compiles_required)
 		{
 			pthread_mutex_unlock(&sim->resource_mutex);
 			break ;
 		}
 		pthread_mutex_unlock(&sim->resource_mutex);
+		if (!request_dongles(coder))
+			break ;
 		do_compile(coder);
 		release_dongles(coder);
 		dispatch_request(sim);
@@ -120,72 +115,28 @@ void	*coder_routine(void *arg)
 void	*monitor_routine(void *arg)
 {
 	t_simulation	*sim;
-	long			time_to_burnout;
-	int				i;
+	t_coder			*coder;
 
 	sim = (t_simulation *)arg;
-	time_to_burnout = sim->config->time_to_burnout;
 	while (1)
 	{
 		pthread_mutex_lock(&sim->resource_mutex);
-		if (sim->stop_flag)
+		if (sim->stop_flag || sim->completed_coders
+			>= sim->config->number_coders)
 		{
 			pthread_mutex_unlock(&sim->resource_mutex);
 			break ;
 		}
-		if (sim->completed_coders >= sim->config->number_coders)
-		{
-			pthread_mutex_unlock(&sim->resource_mutex);
-			stop_simulation(sim);
-			break ;
-		}
-		i = 0;
-		while (i < sim->config->number_coders)
-		{
-			while (sim->coders[i]->compile_count
-				>= sim->config->number_compiles_required)
-				i++;
-			if (get_time_ms() - sim->coders[i]->last_compile_start >= time_to_burnout)
-			{
-				pthread_mutex_unlock(&sim->resource_mutex);
-				log_state(sim->coders[i], "burned out");
-				stop_simulation(sim);
-				return (NULL);
-			}
-			i++;
-		}
+		coder = check_burnout(sim, sim->config->time_to_burnout);
 		pthread_mutex_unlock(&sim->resource_mutex);
+		if (coder)
+		{
+			log_state(coder, "burned out");
+			break ;
+		}
 		dispatch_request(sim);
-		ft_usleep(100);
+		ft_usleep(10);
 	}
+	stop_simulation(sim);
 	return (NULL);
-}
-
-void	stop_simulation(t_simulation *sim)
-{
-	pthread_mutex_lock(&sim->resource_mutex);
-	sim->stop_flag = 1;
-	pthread_cond_broadcast(&sim->resource_cond);
-	pthread_mutex_unlock(&sim->resource_mutex);
-}
-
-void	sim_cleanup(t_simulation *sim)
-{
-	int	i;
-
-	if (!sim)
-		return ;
-	i = 0;
-	while (i < sim->config->number_coders)
-	{
-		free(sim->coders[i]);
-		free(sim->dongles[i]);
-		i++;
-	}
-	free(sim->coders);
-	free(sim->dongles);
-	free_heap(sim->heap);
-	pthread_mutex_destroy(&sim->resource_mutex);
-	pthread_mutex_destroy(&sim->write_mutex);
-	pthread_cond_destroy(&sim->resource_cond);
 }

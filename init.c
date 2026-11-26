@@ -65,6 +65,23 @@ t_dongle	**init_dongles(t_config *config)
 	return (dongles_list);
 }
 
+static void	init_coder(t_coder *coder, int i, int nbr_coders,
+						t_dongle **dongles_list)
+{
+	coder->id = i + 1;
+	coder->compile_count = 0;
+	coder->last_compile_start = 0;
+	coder->deadline = 0;
+	coder->time_request = 0;
+	coder->left_dongle = dongles_list[i];
+	coder->sim = NULL;
+	coder->grant = 0;
+	if (i == 0)
+		coder->right_dongle = dongles_list[nbr_coders - 1];
+	else
+		coder->right_dongle = dongles_list[i - 1];
+}
+
 t_coder	**init_coders(t_config *config, t_dongle **dongles_list)
 {
 	int		i;
@@ -86,18 +103,7 @@ t_coder	**init_coders(t_config *config, t_dongle **dongles_list)
 			free(coders_list);
 			return (NULL);
 		}
-		coders_list[i]->id = i + 1;
-		coders_list[i]->compile_count = 0;
-		coders_list[i]->last_compile_start = 0;
-		coders_list[i]->deadline = 0;
-		coders_list[i]->time_request = 0;
-		coders_list[i]->left_dongle = dongles_list[i];
-		coders_list[i]->sim = NULL;
-		coders_list[i]->grant = 0;
-		if (i == 0)
-			coders_list[i]->right_dongle = dongles_list[nbr_coders - 1];
-		else
-			coders_list[i]->right_dongle = dongles_list[i - 1];
+		init_coder(coders_list[i], i, nbr_coders, dongles_list);
 		i++;
 	}
 	return (coders_list);

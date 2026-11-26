@@ -15,15 +15,6 @@
 //fifo - arrival time (menor) (deadline)
 //edf - last_compile_start + time_to_burnout (deadline)
 
-void	free_heap(t_heap *heap)
-{
-	if (!heap)
-		return ;
-	free(heap->coders_queue);
-	free(heap);
-	return ;
-}
-
 t_heap	*create_heap(int capacity)
 {
 	t_heap	*heap;
@@ -42,24 +33,6 @@ t_heap	*create_heap(int capacity)
 	return (heap);
 }
 
-int	has_priority(t_coder *a, t_coder *b)
-{
-	if (a->deadline < b->deadline)
-		return (1);
-	if (a->deadline == b->deadline && a->time_request < b->time_request)
-		return (1);
-	return (0);
-}
-
-void	swap(t_coder **a, t_coder **b)
-{
-	t_coder	*temp;
-
-	temp = *a;
-	*a = *b;
-	*b = temp;
-}
-
 void	insert_heap(t_simulation *sim, t_heap *heap, t_coder *coder)
 {
 	int		i;
@@ -75,13 +48,14 @@ void	insert_heap(t_simulation *sim, t_heap *heap, t_coder *coder)
 	heap->coders_queue[i] = coder;
 	time = get_time_ms();
 	if (sim->scheduler == EDF)
-		coder->deadline = coder->last_compile_start + sim->config->time_to_burnout;
+		coder->deadline = coder->last_compile_start
+			+ sim->config->time_to_burnout;
 	else
 		coder->deadline = time;
 	coder->grant = 0;
 	coder->time_request = time;
 	while (i != 0 && has_priority(heap->coders_queue[i],
-								heap->coders_queue[(i - 1) / 2]))
+			heap->coders_queue[(i - 1) / 2]))
 	{
 		swap(&heap->coders_queue[i], &heap->coders_queue[(i - 1) / 2]);
 		i = (i - 1) / 2;
@@ -98,10 +72,10 @@ void	heapify(t_heap *heap, int i)
 	left = 2 * i + 1;
 	right = 2 * i + 2;
 	if (left < heap->size && has_priority(heap->coders_queue[left],
-									   heap->coders_queue[smallest]))
+			heap->coders_queue[smallest]))
 		smallest = left;
 	if (right < heap->size && has_priority(heap->coders_queue[right],
-										heap->coders_queue[smallest]))
+			heap->coders_queue[smallest]))
 		smallest = right;
 	if (smallest != i)
 	{
@@ -135,18 +109,17 @@ void	remove_coder(t_heap *heap, int i)
 	if (i < 0 || i >= heap->size)
 		return ;
 	if (i == 0)
-	{
-		extract_root(heap);
-		return ;
-	}
+		return ((void)extract_root(heap));
 	heap->coders_queue[i] = heap->coders_queue[heap->size - 1];
 	heap->size--;
 	if (i >= heap->size)
 		return ;
 	parent = (i - 1) / 2;
-	if (i > 0 && has_priority(heap->coders_queue[i], heap->coders_queue[parent]))
+	if (i > 0 && has_priority(heap->coders_queue[i],
+			heap->coders_queue[parent]))
 	{
-		while (i != 0 && has_priority(heap->coders_queue[i], heap->coders_queue[(i - 1) / 2]))
+		while (i != 0 && has_priority(heap->coders_queue[i],
+				heap->coders_queue[(i - 1) / 2]))
 		{
 			swap(&heap->coders_queue[i], &heap->coders_queue[(i - 1) / 2]);
 			i = (i - 1) / 2;
